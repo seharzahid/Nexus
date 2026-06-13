@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { User, UserRole, AuthContextType } from '../types';
+import { User, UserRole, AuthContextType, Investor, Entrepreneur } from '../types';
 import { users } from '../data/users';
 import toast from 'react-hot-toast';
 
@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Mock login function - in a real app, this would make an API call
-  const login = async (email: string, password: string, role: UserRole): Promise<void> => {
+  const login = async (email: string, _password: string, role: UserRole): Promise<void> => {
     setIsLoading(true);
     
     try {
@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Mock register function - in a real app, this would make an API call
-  const register = async (name: string, email: string, password: string, role: UserRole): Promise<void> => {
+  const register = async (name: string, email: string, _password: string, role: UserRole): Promise<void> => {
     setIsLoading(true);
     
     try {
@@ -63,18 +63,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Email already in use');
       }
       
-      // Create new user
-      const newUser: User = {
-        id: `${role[0]}${users.length + 1}`,
-        name,
-        email,
-        role,
-        avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-        bio: '',
-        isOnline: true,
-        createdAt: new Date().toISOString()
-      };
-      
+      // Create new user with proper role-specific fields
+      const newUser: Investor | Entrepreneur =
+        role === 'investor'
+          ? {
+              id: `i${users.length + 1}`,
+              name,
+              email,
+              role: 'investor',
+              avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+              bio: '',
+              isOnline: true,
+              createdAt: new Date().toISOString(),
+              investmentInterests: ['Technology'],
+              investmentStage: ['Seed'],
+              portfolioCompanies: [],
+              totalInvestments: 0,
+              minimumInvestment: '$50K',
+              maximumInvestment: '$500K',
+            }
+          : {
+              id: `e${users.length + 1}`,
+              name,
+              email,
+              role: 'entrepreneur',
+              avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+              bio: '',
+              isOnline: true,
+              createdAt: new Date().toISOString(),
+              startupName: 'My Tech Startup',
+              pitchSummary: 'An innovative platform built with React.',
+              fundingNeeded: '$50K',
+              industry: 'Technology',
+              location: 'Remote',
+              foundedYear: new Date().getFullYear(),
+              teamSize: 1,
+            };
       // Add user to mock data
       users.push(newUser);
       
@@ -114,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Mock reset password function
-  const resetPassword = async (token: string, newPassword: string): Promise<void> => {
+  const resetPassword = async (token: string, _newPassword: string): Promise<void> => {
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -153,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('User not found');
       }
       
-      const updatedUser = { ...users[userIndex], ...updates };
+      const updatedUser = { ...users[userIndex], ...updates } as Investor | Entrepreneur;
       users[userIndex] = updatedUser;
       
       // Update current user if it's the same user
